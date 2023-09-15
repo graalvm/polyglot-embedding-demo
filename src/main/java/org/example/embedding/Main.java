@@ -77,7 +77,7 @@ public class Main {
                         break;
                     case "java":
                         // with Java we invoke System.out.println reflectively.
-                        Value out = context.getBindings("java").getMember("System").getMember("out");
+                        Value out = context.getBindings("java").getMember("java.lang.System").getMember("out");
                         out.invokeMember("println", "Hello Espresso Java!");
                         break;
                 }
