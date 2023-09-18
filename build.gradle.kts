@@ -1,8 +1,9 @@
 import java.nio.file.*
 
 plugins {
-    `java`
-    `application`
+    id("java")
+    id("application")
+    id("org.graalvm.buildtools.native") version "0.9.27"
 }
 
 java {
@@ -11,56 +12,57 @@ java {
 }
 
 repositories {
-    maven {
-        url = uri("file:///Users/christianhumer/graal/graalvm/maven-resource-bundle-ee-23.1.0-dev")
-    }
     mavenCentral()
+    gradlePluginPortal()
 }
-
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
 description = "embedding"
-var graalVMVersion: String = "23.1.0-SNAPSHOT";
-val isGraalVM = Files.exists(Paths.get("${System.getProperty("java.home")}/lib/graalvm"))
 
+var graalVMVersion: String = "23.1.0";
 dependencies {
     implementation("org.graalvm.polyglot:polyglot:$graalVMVersion")
     implementation("org.graalvm.polyglot:js:$graalVMVersion")
     testImplementation("junit:junit:4.13.2")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-application {
-    mainModule.set("embedding")
-    mainClass.set("org.example.embedding.Main")
-}
+val isGraalVM = Files.exists(Paths.get("${System.getProperty("java.home")}/lib/graalvm"))
 
-if (!isGraalVM) {
-   /*
-    * Path used when running on a different JDK than GraalVM.
-    * This profile may be removed if you are always running with a
-    * GraalVM JDK or if you don't want to use the optimizing runtime.
-    *
-    * Note: Using this path unlocks experimental options and is therefore
-    * not recommended for production use.
-    */
+val jvmDefaultArgs: List<String> = if (isGraalVM) {
+    /*
+     * No JVM arguments needed when running with a GraalVM JDK
+     * JVMCI is already enabled and it comes with the Graal compiler preconfigured
+     */
+   listOf<String>()
+} else {
+    /*
+     * Path used when running on a different JDK than GraalVM.
+     * This profile may be removed if you are always running with a
+     * GraalVM JDK or if you don't want to use the optimizing runtime.
+     *
+     * Note: Using this path unlocks experimental options and is therefore
+     * not recommended for production use.
+     */
     configurations {
         create("compilerClasspath") {
-            extendsFrom(configurations.getByName("implementation"))
             isCanBeResolved = true
         }
     }
     dependencies {
-        implementation("org.graalvm.compiler:compiler:$graalVMVersion")
+        "compilerClasspath"("org.graalvm.compiler:compiler:$graalVMVersion")
     }
-    application {
-        val compilerDependencies = configurations.getByName("compilerClasspath")
-                .filter { it.name.endsWith(".jar") }  // Filter out POMs
-        applicationDefaultJvmArgs = listOf("-XX:+UnlockExperimentalVMOptions",
-                "-XX:+EnableJVMCI",
-                "--upgrade-module-path=${compilerDependencies.asPath}")
-    }
+    val compilerDependencies = configurations.getByName("compilerClasspath").filter { it.name.endsWith(".jar") }  // Filter out POMs
+    listOf("-XX:+UnlockExperimentalVMOptions", "-XX:+EnableJVMCI", "--upgrade-module-path=${compilerDependencies.asPath}")
+}
+
+application {
+    mainModule.set("embedding")
+    mainClass.set("org.example.embedding.Main")
+    applicationDefaultJvmArgs = jvmDefaultArgs
+}
+
+tasks.withType<Test> {
+    useJUnit()
+    jvmArgs(jvmDefaultArgs)
 }
