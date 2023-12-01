@@ -1,0 +1,22 @@
+[
+  {
+    "name" : "java.lang.CharSequence",
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.graalvm.polyglot.management.ExecutionEvent",
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.graalvm.polyglot.SourceSection",
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.graalvm.polyglot.Value",
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.example.native_embedding.API2",
+    "allPublicMethods" : true
+  }
+]

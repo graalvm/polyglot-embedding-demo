@@ -42,6 +42,11 @@
             <properties>
                 <os.nameandarch>linux-amd64</os.nameandarch>
                 <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
+                <lib.jvm.name>jvm</lib.jvm.name>
+                <lib.jvm.subdir>lib/server</lib.jvm.subdir>
+                <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
+                <platform.name>linux</platform.name>
+                <test.build.prepare.params></test.build.prepare.params>
             </properties>
         </profile>
         <profile>
@@ -55,6 +60,11 @@
             <properties>
                 <os.nameandarch>linux-aarch64</os.nameandarch>
                 <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
+                <lib.jvm.name>jvm</lib.jvm.name>
+                <lib.jvm.subdir>lib/server</lib.jvm.subdir>
+                <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
+                <platform.name>linux</platform.name>
+                <test.build.prepare.params></test.build.prepare.params>
             </properties>
         </profile>
         <profile>
@@ -68,6 +78,11 @@
             <properties>
                 <os.nameandarch>darwin-aarch64</os.nameandarch>
                 <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
+                <lib.jvm.name>jvm</lib.jvm.name>
+                <lib.jvm.subdir>lib/server</lib.jvm.subdir>
+                <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
+                <platform.name>darwin</platform.name>
+                <test.build.prepare.params></test.build.prepare.params>
             </properties>
         </profile>
         <profile>
@@ -81,6 +96,11 @@
             <properties>
                 <os.nameandarch>darwin-amd64</os.nameandarch>
                 <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
+                <lib.jvm.name>jvm</lib.jvm.name>
+                <lib.jvm.subdir>lib/server</lib.jvm.subdir>
+                <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
+                <platform.name>darwin</platform.name>
+                <test.build.prepare.params></test.build.prepare.params>
             </properties>
         </profile>
         <profile>
@@ -94,6 +114,11 @@
             <properties>
                 <os.nameandarch>windows-amd64</os.nameandarch>
                 <lib.native-embedding.name>libnative-embedding</lib.native-embedding.name>
+                <lib.jvm.name>jvm</lib.jvm.name>
+                <lib.jvm.subdir>lib</lib.jvm.subdir>
+                <lib.jvm.bin.subdir>bin\server</lib.jvm.bin.subdir>
+                <platform.name>win32</platform.name>
+                <test.build.prepare.params>-GNinja</test.build.prepare.params>
             </properties>
         </profile>
         <profile>
@@ -174,6 +199,13 @@
                                         <PROJECT_MAIN_DIR>${project.basedir}</PROJECT_MAIN_DIR>
                                         <PROJECT_BUILD_DIR>${project.build.directory}</PROJECT_BUILD_DIR>
                                         <LIB_NATIVE_EMBEDDING_NAME>${lib.native-embedding.name}</LIB_NATIVE_EMBEDDING_NAME>
+                                        <JAVA_HOME>${java.home}</JAVA_HOME>
+                                        <PLATFORM_NAME>${platform.name}</PLATFORM_NAME>
+                                        <LIB_JVM_PATH>${project.build.directory}</LIB_JVM_PATH>
+                                        <LIB_JVM_NAME>${lib.native-embedding.name}</LIB_JVM_NAME>
+                                        <!--Uncomment the following and comment out the above to run against the jvm library instead of the built native-embedding library-->
+<!--                                        <LIB_JVM_PATH>${java.home}${file.separator}${lib.jvm.subdir}</LIB_JVM_PATH>-->
+<!--                                        <LIB_JVM_NAME>${lib.jvm.name}</LIB_JVM_NAME>-->
                                     </environmentVariables>
                                     <workingDirectory>
                                         ${project.build.directory}
@@ -182,7 +214,25 @@
                                         cmake
                                     </executable>
                                     <commandlineArgs>
-                                        ${project.basedir}${file.separator}native-embedding-test
+                                        ${test.build.prepare.params} ${project.basedir}${file.separator}native-embedding-test
+                                    </commandlineArgs>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>prepare-tests</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>
+                                        ${project.build.directory}
+                                    </workingDirectory>
+                                    <executable>
+                                        javac
+                                    </executable>
+                                    <commandlineArgs>
+                                        --module-path=%classpath -d ${project.build.directory}${file.separator}classes -h . ${project.build.sourceDirectory}${file.separator}org${file.separator}example${file.separator}native_embedding${file.separator}ExecutionEventConsumer.java
                                     </commandlineArgs>
                                 </configuration>
                             </execution>
@@ -214,6 +264,25 @@
                                     <executable>
                                         ${project.build.directory}${file.separator}native-embedding-test
                                     </executable>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>run-tests2</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <environmentVariables>
+                                        <LD_LIBRARY_PATH>${java.home}${file.separator}${lib.jvm.bin.subdir}</LD_LIBRARY_PATH>
+                                        <PATH>${env.PATH}${path.separator}${java.home}${file.separator}${lib.jvm.bin.subdir}</PATH>
+                                    </environmentVariables>
+                                    <executable>
+                                        ${project.build.directory}${file.separator}native-embedding-test2
+                                    </executable>
+                                    <commandlineArgs>
+                                        %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}
+                                    </commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>
