@@ -255,18 +255,6 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>run-tests</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>
-                                        ${project.build.directory}${file.separator}native-embedding-test
-                                    </executable>
-                                </configuration>
-                            </execution>
-                            <execution>
                                 <id>run-tests2</id>
                                 <phase>package</phase>
                                 <goals>

@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <jni.h>
-#include "org_example_native_embedding_ExecutionEventConsumer.h"
 
 #define CHECK_THROW() if ((*env)->ExceptionCheck(env)) { \
     printf("JNI error at %s:%d\n", __FILE__, __LINE__); \
