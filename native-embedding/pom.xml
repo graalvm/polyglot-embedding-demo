@@ -198,14 +198,13 @@
                                     <environmentVariables>
                                         <PROJECT_MAIN_DIR>${project.basedir}</PROJECT_MAIN_DIR>
                                         <PROJECT_BUILD_DIR>${project.build.directory}</PROJECT_BUILD_DIR>
-                                        <LIB_NATIVE_EMBEDDING_NAME>${lib.native-embedding.name}</LIB_NATIVE_EMBEDDING_NAME>
                                         <JAVA_HOME>${java.home}</JAVA_HOME>
                                         <PLATFORM_NAME>${platform.name}</PLATFORM_NAME>
-                                        <LIB_JVM_PATH>${project.build.directory}</LIB_JVM_PATH>
-                                        <LIB_JVM_NAME>${lib.native-embedding.name}</LIB_JVM_NAME>
+<!--                                        <LIB_API_PATH>${project.build.directory}</LIB_API_PATH>-->
+<!--                                        <LIB_API_NAME>${lib.native-embedding.name}</LIB_API_NAME>-->
                                         <!--Uncomment the following and comment out the above to run against the jvm library instead of the built native-embedding library-->
-<!--                                        <LIB_JVM_PATH>${java.home}${file.separator}${lib.jvm.subdir}</LIB_JVM_PATH>-->
-<!--                                        <LIB_JVM_NAME>${lib.jvm.name}</LIB_JVM_NAME>-->
+                                        <LIB_API_PATH>${java.home}${file.separator}${lib.jvm.subdir}</LIB_API_PATH>
+                                        <LIB_API_NAME>${lib.jvm.name}</LIB_API_NAME>
                                     </environmentVariables>
                                     <workingDirectory>
                                         ${project.build.directory}
@@ -214,7 +213,7 @@
                                         cmake
                                     </executable>
                                     <commandlineArgs>
-                                        ${test.build.prepare.params} ${project.basedir}${file.separator}native-embedding-test
+                                        ${test.build.prepare.params} ${project.basedir}${file.separator}src${file.separator}test${file.separator}c
                                     </commandlineArgs>
                                 </configuration>
                             </execution>

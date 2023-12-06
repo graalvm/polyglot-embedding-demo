@@ -16,7 +16,7 @@
     "allPublicMethods" : true
   },
   {
-    "name" : "org.example.native_embedding.API2",
+    "name" : "org.example.native_embedding.API",
     "allPublicMethods" : true
   }
 ]

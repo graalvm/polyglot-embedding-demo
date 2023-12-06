@@ -4,7 +4,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.management.ExecutionListener;
 
-public class API2 {
+public class API {
     private static final Context context = Context.newBuilder().allowAllAccess(true).build();
 
     public static void helloFromJS() {
