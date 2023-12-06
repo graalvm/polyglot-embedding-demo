@@ -13,6 +13,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <graalvm.version>23.1.0</graalvm.version>
+        <build.native.embedding.library.phase>package</build.native.embedding.library.phase>
     </properties>
 
     <dependencies>
@@ -122,12 +123,23 @@
             </properties>
         </profile>
         <profile>
-            <id>build-native-embedding-library</id>
+            <id>jvm-library</id>
             <activation>
                 <property>
                     <name>os.name</name>
                 </property>
             </activation>
+            <properties>
+                <lib.api.path>${java.home}${file.separator}${lib.jvm.subdir}</lib.api.path>
+                <lib.api.name>${lib.jvm.name}</lib.api.name>
+            </properties>
+        </profile>
+        <profile>
+            <id>native-embedding-library</id>
+            <properties>
+                <lib.api.path>${project.build.directory}</lib.api.path>
+                <lib.api.name>${lib.native-embedding.name}</lib.api.name>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -164,7 +176,7 @@
                                 <goals>
                                     <goal>compile-no-fork</goal>
                                 </goals>
-                                <phase>package</phase>
+                                <phase>${build.native.embedding.library.phase}</phase>
                             </execution>
                         </executions>
                         <configuration>
@@ -181,102 +193,100 @@
         </profile>
         <profile>
             <id>build-and-run-tests</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <version>3.1.0</version>
-                        <executions>
-                            <execution>
-                                <id>build-tests-makefile</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <environmentVariables>
-                                        <PROJECT_MAIN_DIR>${project.basedir}</PROJECT_MAIN_DIR>
-                                        <PROJECT_BUILD_DIR>${project.build.directory}</PROJECT_BUILD_DIR>
-                                        <JAVA_HOME>${java.home}</JAVA_HOME>
-                                        <PLATFORM_NAME>${platform.name}</PLATFORM_NAME>
-<!--                                        <LIB_API_PATH>${project.build.directory}</LIB_API_PATH>-->
-<!--                                        <LIB_API_NAME>${lib.native-embedding.name}</LIB_API_NAME>-->
-                                        <!--Uncomment the following and comment out the above to run against the jvm library instead of the built native-embedding library-->
-                                        <LIB_API_PATH>${java.home}${file.separator}${lib.jvm.subdir}</LIB_API_PATH>
-                                        <LIB_API_NAME>${lib.jvm.name}</LIB_API_NAME>
-                                    </environmentVariables>
-                                    <workingDirectory>
-                                        ${project.build.directory}
-                                    </workingDirectory>
-                                    <executable>
-                                        cmake
-                                    </executable>
-                                    <commandlineArgs>
-                                        ${test.build.prepare.params} ${project.basedir}${file.separator}src${file.separator}test${file.separator}c
-                                    </commandlineArgs>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>prepare-tests</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <workingDirectory>
-                                        ${project.build.directory}
-                                    </workingDirectory>
-                                    <executable>
-                                        javac
-                                    </executable>
-                                    <commandlineArgs>
-                                        --module-path=%classpath -d ${project.build.directory}${file.separator}classes -h . ${project.build.sourceDirectory}${file.separator}org${file.separator}example${file.separator}native_embedding${file.separator}ExecutionEventConsumer.java
-                                    </commandlineArgs>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>build-tests</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <workingDirectory>
-                                        ${project.build.directory}
-                                    </workingDirectory>
-                                    <executable>
-                                        cmake
-                                    </executable>
-                                    <commandlineArgs>
-                                        --build .
-                                    </commandlineArgs>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>run-tests2</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <environmentVariables>
-                                        <LD_LIBRARY_PATH>${java.home}${file.separator}${lib.jvm.bin.subdir}</LD_LIBRARY_PATH>
-                                        <PATH>${env.PATH}${path.separator}${java.home}${file.separator}${lib.jvm.bin.subdir}</PATH>
-                                    </environmentVariables>
-                                    <executable>
-                                        ${project.build.directory}${file.separator}native-embedding-test2
-                                    </executable>
-                                    <commandlineArgs>
-                                        %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}
-                                    </commandlineArgs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-jni-callback-header</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <workingDirectory>
+                                ${project.build.directory}
+                            </workingDirectory>
+                            <executable>
+                                javac
+                            </executable>
+                            <commandlineArgs>
+                                --module-path=%classpath -d ${project.build.directory}${file.separator}classes -h . ${project.build.sourceDirectory}${file.separator}org${file.separator}example${file.separator}native_embedding${file.separator}CallbackTrampoline.java
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-tests-makefile</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <PROJECT_MAIN_DIR>${project.basedir}</PROJECT_MAIN_DIR>
+                                <PROJECT_BUILD_DIR>${project.build.directory}</PROJECT_BUILD_DIR>
+                                <JAVA_HOME>${java.home}</JAVA_HOME>
+                                <PLATFORM_NAME>${platform.name}</PLATFORM_NAME>
+                                <LIB_API_PATH>${lib.api.path}</LIB_API_PATH>
+                                <LIB_API_NAME>${lib.api.name}</LIB_API_NAME>
+                            </environmentVariables>
+                            <workingDirectory>
+                                ${project.build.directory}
+                            </workingDirectory>
+                            <executable>
+                                cmake
+                            </executable>
+                            <commandlineArgs>
+                                ${test.build.prepare.params} ${project.basedir}${file.separator}src${file.separator}test${file.separator}c
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-tests</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <workingDirectory>
+                                ${project.build.directory}
+                            </workingDirectory>
+                            <executable>
+                                cmake
+                            </executable>
+                            <commandlineArgs>
+                                --build .
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>run-test1</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <LD_LIBRARY_PATH>${java.home}${file.separator}${lib.jvm.bin.subdir}</LD_LIBRARY_PATH>
+                                <PATH>${env.PATH}${path.separator}${java.home}${file.separator}${lib.jvm.bin.subdir}</PATH>
+                            </environmentVariables>
+                            <executable>
+                                ${project.build.directory}${file.separator}hello-with-callback
+                            </executable>
+                            <commandlineArgs>
+                                %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
