@@ -12,8 +12,9 @@ as a part of this project.
 
 Download Maven or import as Maven project into your IDE.
 
-* `mvn package` to build the native embedding library by Native Image.
-* `mvn -Pbuild-and-run-tests` to build the library and also run the C program that tests the API exposed by the library.
-* `mvn -P-build-native-embedding-library -Pbuild-and-run-tests` to run the test without building the library.
+* `mvn verify` to run the C tests of the API using the JVM library.
+* `mvn -Pnative-embedding-library package` to build the native embedding library by Native Image.
+* `mvn -Pnative-embedding-library verify` to build the native embedding library by Native Image and run the C tests of the API exposed by the library.
+* `mvn -Pnative-embedding-library verify -Dbuild.native.embedding.library.phase=none` to run the C tests without building the library (when the library is already built).
 
 Please see the [pom.xml](./pom.xml) file for further details on the configuration.

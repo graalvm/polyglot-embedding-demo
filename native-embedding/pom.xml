@@ -13,6 +13,8 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <graalvm.version>23.1.0</graalvm.version>
+        <!--Overriding the value of this property on the command line by -Dbuild.native.embedding.library.phase=none-->
+        <!--skips the building of the native embedding library which is good for playing with the C tests after the library is already built.-->
         <build.native.embedding.library.phase>package</build.native.embedding.library.phase>
     </properties>
 
@@ -29,9 +31,12 @@
             <version>${graalvm.version}</version>
             <type>pom</type>
         </dependency>
+
+        <!--Further languages can be added by adding additional dependencies-->
     </dependencies>
 
     <profiles>
+        <!--Automatic platform profiles for checking whether the current platform is supported and also setting platform specific properties.-->
         <profile>
             <id>set-linux-amd64</id>
             <activation>
@@ -42,8 +47,9 @@
             </activation>
             <properties>
                 <os.nameandarch>linux-amd64</os.nameandarch>
-                <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
-                <lib.jvm.name>jvm</lib.jvm.name>
+                <mkdir.command>mkdir</mkdir.command>
+                <mkdir.args>-p</mkdir.args>
+                <lib.prefix>lib</lib.prefix>
                 <lib.jvm.subdir>lib/server</lib.jvm.subdir>
                 <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
                 <platform.name>linux</platform.name>
@@ -60,8 +66,9 @@
             </activation>
             <properties>
                 <os.nameandarch>linux-aarch64</os.nameandarch>
-                <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
-                <lib.jvm.name>jvm</lib.jvm.name>
+                <mkdir.command>mkdir</mkdir.command>
+                <mkdir.args>-p</mkdir.args>
+                <lib.prefix>lib</lib.prefix>
                 <lib.jvm.subdir>lib/server</lib.jvm.subdir>
                 <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
                 <platform.name>linux</platform.name>
@@ -78,8 +85,9 @@
             </activation>
             <properties>
                 <os.nameandarch>darwin-aarch64</os.nameandarch>
-                <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
-                <lib.jvm.name>jvm</lib.jvm.name>
+                <mkdir.command>mkdir</mkdir.command>
+                <mkdir.args>-p</mkdir.args>
+                <lib.prefix>lib</lib.prefix>
                 <lib.jvm.subdir>lib/server</lib.jvm.subdir>
                 <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
                 <platform.name>darwin</platform.name>
@@ -96,8 +104,9 @@
             </activation>
             <properties>
                 <os.nameandarch>darwin-amd64</os.nameandarch>
-                <lib.native-embedding.name>native-embedding</lib.native-embedding.name>
-                <lib.jvm.name>jvm</lib.jvm.name>
+                <mkdir.command>mkdir</mkdir.command>
+                <mkdir.args>-p</mkdir.args>
+                <lib.prefix>lib</lib.prefix>
                 <lib.jvm.subdir>lib/server</lib.jvm.subdir>
                 <lib.jvm.bin.subdir>lib/server</lib.jvm.bin.subdir>
                 <platform.name>darwin</platform.name>
@@ -114,14 +123,16 @@
             </activation>
             <properties>
                 <os.nameandarch>windows-amd64</os.nameandarch>
-                <lib.native-embedding.name>libnative-embedding</lib.native-embedding.name>
-                <lib.jvm.name>jvm</lib.jvm.name>
+                <mkdir.command>cmd</mkdir.command>
+                <mkdir.args>/C mkdir</mkdir.args>
+                <lib.prefix></lib.prefix>
                 <lib.jvm.subdir>lib</lib.jvm.subdir>
                 <lib.jvm.bin.subdir>bin\server</lib.jvm.bin.subdir>
                 <platform.name>win32</platform.name>
                 <test.build.prepare.params>-GNinja</test.build.prepare.params>
             </properties>
         </profile>
+        <!--Default profile that uses the JVM library for execution of the C tests.-->
         <profile>
             <id>jvm-library</id>
             <activation>
@@ -131,40 +142,22 @@
             </activation>
             <properties>
                 <lib.api.path>${java.home}${file.separator}${lib.jvm.subdir}</lib.api.path>
-                <lib.api.name>${lib.jvm.name}</lib.api.name>
+                <lib.api.bin.path>${java.home}${file.separator}${lib.jvm.bin.subdir}</lib.api.bin.path>
+                <lib.api.name>jvm</lib.api.name>
             </properties>
         </profile>
+        <!--Profile that uses the native embedding library built by Native Image for execution of the C tests.-->
+        <!--The library is built first unless -Dbuild.native.embedding.library.phase=none is specified,-->
+        <!--in which case the library has to be already built in order for the C examples to work-->
         <profile>
             <id>native-embedding-library</id>
             <properties>
                 <lib.api.path>${project.build.directory}</lib.api.path>
-                <lib.api.name>${lib.native-embedding.name}</lib.api.name>
+                <lib.api.bin.path>${project.build.directory}</lib.api.bin.path>
+                <lib.api.name>native-embedding</lib.api.name>
             </properties>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <version>3.4.1</version>
-                        <executions>
-                            <execution>
-                                <id>enforce-os-and-arch</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <requireActiveProfile>
-                                            <profiles>set-linux-amd64,set-linux-aarch64,set-darwin-amd64,set-darwin-aarch64,set-windows-amd64</profiles>
-                                            <all>false</all>
-                                            <message>Unsupported OS: name [ ${os.name} ] arch [ ${os.arch} ]</message>
-                                        </requireActiveProfile>
-                                    </rules>
-                                    <fail>true</fail>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
@@ -180,7 +173,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <imageName>lib${project.artifactId}</imageName>
+                            <imageName>${lib.prefix}${project.artifactId}</imageName>
                             <buildArgs>
                                 <buildArg>--shared</buildArg>
                                 <buildArg>--no-fallback</buildArg>
@@ -197,7 +190,34 @@
     </profiles>
 
     <build>
+        <!--Stop building if not on a supported architecture-->
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-os-and-arch</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireActiveProfile>
+                                    <profiles>set-linux-amd64,set-linux-aarch64,set-darwin-amd64,set-darwin-aarch64,set-windows-amd64</profiles>
+                                    <all>false</all>
+                                    <message>Unsupported OS: name [ ${os.name} ] arch [ ${os.arch} ]</message>
+                                </requireActiveProfile>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--The output of this plugin is only needed when the CallbackTrampoline is changed.-->
+            <!--Generates a JNI header for the CallbackTrampoline helper library and stores it in the main build output directory.-->
+            <!--The generated header is supposed to be copied to the src/main/c folder where its implementation C file is supposed to be manually added.-->
             <plugin>
                 <artifactId>exec-maven-plugin</artifactId>
                 <groupId>org.codehaus.mojo</groupId>
@@ -214,13 +234,35 @@
                                 ${project.build.directory}
                             </workingDirectory>
                             <executable>
-                                javac
+                                ${java.home}${file.separator}bin${file.separator}javac
                             </executable>
                             <commandlineArgs>
                                 --module-path=%classpath -d ${project.build.directory}${file.separator}classes -h . ${project.build.sourceDirectory}${file.separator}org${file.separator}example${file.separator}native_embedding${file.separator}CallbackTrampoline.java
                             </commandlineArgs>
                         </configuration>
                     </execution>
+                    <!--Create output directory for the test: <main build output directory>/tests/<os and arch name>/<API library name>.-->
+                    <execution>
+                        <id>prepare-test-output-dir</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>
+                                ${mkdir.command}
+                            </executable>
+                            <commandlineArgs>
+                                ${mkdir.args} ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library
+                            </commandlineArgs>
+                            <successCodes>
+                                <successCode>0</successCode>
+                                <successCode>1</successCode>
+                            </successCodes>
+                        </configuration>
+                    </execution>
+                    <!--Process the CMakeLists.txt file to generate build scripts for the C tests. This includes the helper CallbackTrampoline library as well.-->
+                    <!--The build scripts are generated in the created output directory and the build generation parameters are passed as environment parameters.-->
                     <execution>
                         <id>build-tests-makefile</id>
                         <phase>verify</phase>
@@ -237,7 +279,7 @@
                                 <LIB_API_NAME>${lib.api.name}</LIB_API_NAME>
                             </environmentVariables>
                             <workingDirectory>
-                                ${project.build.directory}
+                                ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library
                             </workingDirectory>
                             <executable>
                                 cmake
@@ -247,6 +289,7 @@
                             </commandlineArgs>
                         </configuration>
                     </execution>
+                    <!--Use the generated build scripts to build the tests.-->
                     <execution>
                         <id>build-tests</id>
                         <phase>verify</phase>
@@ -255,7 +298,7 @@
                         </goals>
                         <configuration>
                             <workingDirectory>
-                                ${project.build.directory}
+                                ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library
                             </workingDirectory>
                             <executable>
                                 cmake
@@ -265,22 +308,76 @@
                             </commandlineArgs>
                         </configuration>
                     </execution>
+                    <!--Run the hello-with-callback test with the following command line parameters:-->
+                    <!--1. Module path (equal to the %classpath maven variable)-->
+                    <!--2. Main module (org.example.native_embedding_api)-->
+                    <!--3. Java home-->
+                    <!--4. Library path for the helper library (equal to the prepared test build directory)-->
                     <execution>
-                        <id>run-test1</id>
+                        <id>run-hello-with-callback-tests</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
                         <configuration>
                             <environmentVariables>
-                                <LD_LIBRARY_PATH>${java.home}${file.separator}${lib.jvm.bin.subdir}</LD_LIBRARY_PATH>
-                                <PATH>${env.PATH}${path.separator}${java.home}${file.separator}${lib.jvm.bin.subdir}</PATH>
+                                <LD_LIBRARY_PATH>${lib.api.bin.path}</LD_LIBRARY_PATH>
+                                <PATH>${env.PATH}${path.separator}${lib.api.bin.path}</PATH>
                             </environmentVariables>
                             <executable>
-                                ${project.build.directory}${file.separator}hello-with-callback
+                                ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library${file.separator}hello-with-callback
                             </executable>
                             <commandlineArgs>
-                                %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}
+                                %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <!--Run the fibonacci test with the following command line parameters:-->
+                    <!--1. Module path (equal to the %classpath maven variable)-->
+                    <!--2. Main module (org.example.native_embedding_api)-->
+                    <!--3. Java home-->
+                    <!--4. Library path for the helper library (equal to the prepared test build directory)-->
+                    <!--5. The sequence number n in order to compute n-th element of the fibonacci sequence-->
+                    <execution>
+                        <id>run-fib-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <LD_LIBRARY_PATH>${lib.api.bin.path}</LD_LIBRARY_PATH>
+                                <PATH>${env.PATH}${path.separator}${lib.api.bin.path}</PATH>
+                            </environmentVariables>
+                            <executable>
+                                ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library${file.separator}fib
+                            </executable>
+                            <commandlineArgs>
+                                %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library 50
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <!--Run the eval test with the following command line parameters:-->
+                    <!--1. Module path (equal to the %classpath maven variable)-->
+                    <!--2. Main module (org.example.native_embedding_api)-->
+                    <!--3. Java home-->
+                    <!--4. Library path for the helper library (equal to the prepared test build directory)-->
+                    <execution>
+                        <id>run-eval-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <LD_LIBRARY_PATH>${lib.api.bin.path}</LD_LIBRARY_PATH>
+                                <PATH>${env.PATH}${path.separator}${lib.api.bin.path}</PATH>
+                            </environmentVariables>
+                            <executable>
+                                ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library${file.separator}evaljs
+                            </executable>
+                            <commandlineArgs>
+                                %classpath org.example.native_embedding_api ${java.home} ${project.build.directory}${file.separator}tests${file.separator}${os.nameandarch}${file.separator}${lib.api.name}-library
                             </commandlineArgs>
                         </configuration>
                     </execution>

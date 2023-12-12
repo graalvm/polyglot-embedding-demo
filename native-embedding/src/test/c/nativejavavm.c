@@ -17,6 +17,10 @@ jclass t_api = NULL;
 
 jmethodID m_value_asString = NULL;
 jmethodID m_api_helloWithCallback = NULL;
+jmethodID m_api_fibonacci = NULL;
+jmethodID m_api_eval = NULL;
+jmethodID m_api_setup = NULL;
+jmethodID m_api_tearDown = NULL;
 
 
 const char* get_string_chars(jstring str) {
@@ -40,8 +44,8 @@ char *getOptionString(char *optionParam, char *optionValue) {
 }
 
 void create_java_vm(int argc, char** argv) {
-    if (argc != 5) {
-        printf("Expecting exactly 4 arguments: Java Module Path, Main Module, Java Home, and Java Library Path!\n");
+    if (argc < 5) {
+        printf("Expecting at least 4 arguments starting with: Java Module Path, Main Module, Java Home, and Java Library Path!\n");
         exit(1);
     }
 
@@ -51,6 +55,10 @@ void create_java_vm(int argc, char** argv) {
     printf("Java Library Path: %s\n", argv[4]);
     fflush(stdout);
 
+    // Create Java VM through JNI. Works both with the JVM library and the library built by Native Image.
+    // For the JVM library the module related parameters and the java.home parameter are necessary.
+    // For the library built by Native Image, these parameters are redundant, because no module loading occurs
+    // on SVM used by the Native Image, everything is already built into the library.
 
     JavaVMInitArgs vm_args;
     JavaVMOption options[4] = {0};
@@ -81,16 +89,24 @@ void create_java_vm(int argc, char** argv) {
 }
 
 void lookup_classes_and_methods() {
-    // Lookup classes
+    // Lookup classes needed by the examples
     t_value = (*env)->FindClass(env, "org/graalvm/polyglot/Value");
     CHECK_THROW()
     jclass t_api = (*env)->FindClass(env, "org/example/native_embedding/API");
     CHECK_THROW()
 
 
-    // Lookup methods
+    // Lookup methods needed by the examples
     m_value_asString = (*env)->GetMethodID(env, t_value, "asString", "()Ljava/lang/String;");
     CHECK_THROW()
+    m_api_setup = (*env)->GetStaticMethodID(env, t_api, "setup", "()V");
+    CHECK_THROW()
+    m_api_tearDown = (*env)->GetStaticMethodID(env, t_api, "tearDown", "()V");
+    CHECK_THROW()
     m_api_helloWithCallback = (*env)->GetStaticMethodID(env, t_api, "helloWithCallback", "(J)V");
+    CHECK_THROW()
+    m_api_fibonacci = (*env)->GetStaticMethodID(env, t_api, "fibonacci", "(I)J");
+    CHECK_THROW()
+    m_api_eval = (*env)->GetStaticMethodID(env, t_api, "eval", "(Ljava/lang/String;)V");
     CHECK_THROW()
 }
