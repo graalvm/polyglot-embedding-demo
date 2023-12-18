@@ -5,7 +5,7 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 
-public class API {
+public class NativeAPI {
     private static Context context;
 
     /**

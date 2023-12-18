@@ -150,7 +150,7 @@
         <!--The library is built first unless -Dbuild.native.embedding.library.phase=none is specified,-->
         <!--in which case the library has to be already built in order for the C examples to work-->
         <profile>
-            <id>native-embedding-library</id>
+            <id>native</id>
             <properties>
                 <lib.api.path>${project.build.directory}</lib.api.path>
                 <lib.api.bin.path>${project.build.directory}</lib.api.bin.path>
@@ -215,32 +215,26 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--The output of this plugin is only needed when the CallbackTrampoline is changed.-->
-            <!--Generates a JNI header for the CallbackTrampoline helper library and stores it in the main build output directory.-->
-            <!--The generated header is supposed to be copied to the src/main/c folder where its implementation C file is supposed to be manually added.-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <!--Generates header files for native methods in the Java files in this project into the src/main/c folder-->
+                    <!--Currently the only native method is in the CallbackTrampoline.java file.-->
+                    <!--C implementation files need to be added/modified when native methods in the Java files are added/mofified.-->
+                    <!--C implementation for the CallbackTrampoline header file is already there as it is needed for this project.-->
+                    <compilerArgs>
+                        <compilerArg>-h</compilerArg>
+                        <compilerArg>${project.basedir}${file.separator}src${file.separator}main${file.separator}c</compilerArg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>exec-maven-plugin</artifactId>
                 <groupId>org.codehaus.mojo</groupId>
                 <version>3.1.0</version>
                 <executions>
-                    <execution>
-                        <id>generate-jni-callback-header</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <workingDirectory>
-                                ${project.build.directory}
-                            </workingDirectory>
-                            <executable>
-                                ${java.home}${file.separator}bin${file.separator}javac
-                            </executable>
-                            <commandlineArgs>
-                                --module-path=%classpath -d ${project.build.directory}${file.separator}classes -h . ${project.build.sourceDirectory}${file.separator}org${file.separator}example${file.separator}native_embedding${file.separator}CallbackTrampoline.java
-                            </commandlineArgs>
-                        </configuration>
-                    </execution>
                     <!--Create output directory for the test: <main build output directory>/tests/<os and arch name>/<API library name>.-->
                     <execution>
                         <id>prepare-test-output-dir</id>

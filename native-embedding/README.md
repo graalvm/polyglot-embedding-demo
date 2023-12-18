@@ -2,7 +2,11 @@
 Demonstration project showing polyglot native embedding with GraalVM JDK 21 using Maven.
 It contains a simple API class that is built into a native libary and then accessed in a C program.
 The C program runs both with the JVM library and the self-contained library built by Native Image
-as a part of this project. 
+as a part of this project.
+
+The project is supported on all platforms where GraalVM is supported.
+
+> On Windows the project has to be executed from the Visual Studio's x64 Native Tools Command Prompt.
 
 ## Setup
 
@@ -12,9 +16,77 @@ as a part of this project.
 
 Download Maven or import as Maven project into your IDE.
 
+### Basic usage
+
 * `mvn verify` to run the C tests of the API using the JVM library.
-* `mvn -Pnative-embedding-library package` to build the native embedding library by Native Image.
-* `mvn -Pnative-embedding-library verify` to build the native embedding library by Native Image and run the C tests of the API exposed by the library.
-* `mvn -Pnative-embedding-library verify -Dbuild.native.embedding.library.phase=none` to run the C tests without building the library (when the library is already built).
+* `mvn -Pnative package` to build the native embedding library by Native Image.
+* `mvn -Pnative verify` to build the native embedding library by Native Image and run the C tests of the API exposed by the library.
+* `mvn -Pnative verify -Dbuild.native.embedding.library.phase=none` to run the C tests without building the library (when the library is already built).
+
+### Building and running the C tests manually
+
+The instructions for building and running the C tests manually depend on whether the tests should run with the JVM library
+or the library built by Native Image. 
+
+#### JVM library
+
+First prepare an empty build directory for the C tests and set it as the current working directory and then set the following environment variables:
+
+* `PROJECT_MAIN_DIR` to the full path to the native-embedding project
+* `JAVA_HOME` to the full path to the GraalVM home directory
+* `LIB_API_PATH` to the full path to the JVM library. E.g. on Linux it is `<JAVA_HOME>/lib/server`, on Windows it is `<JAVA_HOME>\lib` 
+* `LIB_API_NAME` to "jvm"
+* `PLATFORM_NAME` to the name of the platform directory in the GraalVM's include folder. E.g. on Linux it is "linux" as the full path to the platform directory is `<JAVA_HOME>/include/linux`
+
+Then prepare build files by running `cmake <PROJECT_MAIN_DIR>/src/test/c` on Unix-based systems or by running `cmake -GNinja <PROJECT_MAIN_DIR>\src\test\c` on Windows.
+
+Then build the C tests by `cmake --build .`
+
+For running, the individual C tests expect the first 4 command-line arguments to be: Java module path, Main module name, Java home path, and Java library path.
+
+The **Java module path** can be obtained form the maven project by running `mvn compile exec:exec -Dexec.executable=echo -Dexec.args="%classpath"` on Unix-based systems
+or by running `mvn compile exec:exec -Dexec.executable=cmd -Dexec.args="/C echo %classpath"`on Windows.
+
+The **Main module name** is "org.example.native_embedding_api".
+
+The **Java home path** is the path to the GraalVM home directory.
+
+The **Java library path** can be set as "." when running a C test from the build directory of the C tests.
+
+Example: `./hello-with-callback <Java module path> org.example.native_embedding_api <Java home path> .`
+
+> On Windows, the path to the JVM library has to be added to paths in the `PATH` variable. The command `set PATH=%PATH%;%JAVA_HOME%\bin\server` should do the trick. Please note that the path
+is different than the `LIB_API_PATH` used for building.
+
+#### Self-contained library built by Native Image
+
+Build the library by `mvn -Pnative package` and then prepare an empty build directory for the C tests and set it as the current working directory and then set the following environment variables:
+
+* `PROJECT_MAIN_DIR` to the full path to the native-embedding project
+* `JAVA_HOME` to the full path to the GraalVM home directory
+* `LIB_API_PATH` to the full path to the project build directory `<PROJECT_MAIN_DIR>/target`
+* `LIB_API_NAME` to "native-embedding"
+* `PLATFORM_NAME` to the name of the platform directory in the GraalVM's include folder. E.g. on Linux it is "linux" as the full path to the platform directory is `<JAVA_HOME>/include/linux`
+
+Then prepare build files by running `cmake <PROJECT_MAIN_DIR>/src/test/c` on Unix-based systems or by running `cmake -GNinja <PROJECT_MAIN_DIR>\src\test\c` on Windows-based systems.
+
+Then build the C tests by `cmake --build .`
+
+For running, the individual C tests expect the first 4 command-line arguments to be: Java module path, Main module name, Java home path, and Java library path. However, unlike for the JVM library the
+first 3 arguments are ignored for the native-embedding library as everything is already built into the library. The **Java library path** can then be set as "." when running a C test from the build directory of the C tests.
+
+Example: `./hello-with-callback a b c .`
+
+> On Windows, the path to the built API library has to be added to paths in the `PATH` variable. The command `set PATH=%PATH%;%PROJECT_MAIN_DIR%\target` should do the trick. Please note than the path
+is different that the `LIB_API_PATH` used for building.
+
+### Generating C headers for the native methods in the Java files
+
+The `hello-with-callback` C test requires a helper library to invoke the native callback and the helper library is invoked via the `jumpToCallback` native method defined
+in the CallbackTrampoline class. The helper library uses a headers file generated by the Java compiler. 
+
+All headers are automatically generated during Java compilation and stored in the `src/main/c` folder. The implementations for the header files then have to be added manually.
+
+Currently, the only native method is the one in the CallbackTrampoline class and its implementation is already there as it is needed for the project.
 
 Please see the [pom.xml](./pom.xml) file for further details on the configuration.
