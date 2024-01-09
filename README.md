@@ -2,6 +2,9 @@
 Demonstration repository showing polyglot embedding with GraalVM JDK 21 using Maven and Gradle.
 It contains a simple Main and Test class to bootstrap a polyglot embedding project.
 
+For demonstration showing polyglot native embedding with GraalVM JDK 21 using Maven, see
+the [Native embedding Maven project](native-embedding/README.md) located in the `native-embedding` subdirectory.
+
 For more details on polyglot embedding please see the docs:
 https://www.graalvm.org/latest/reference-manual/embed-languages/
 
