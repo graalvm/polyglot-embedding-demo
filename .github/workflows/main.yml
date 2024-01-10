@@ -1,0 +1,43 @@
+name: Test demo
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 1 * *" # run every month
+jobs:
+  maven:
+    name: Test Maven
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+      - name: Build and run with Maven
+        run: |
+          mvn package
+          mvn test
+          mvn exec:exec
+          mvn -Pnative package
+
+  gradle:
+    name: Test Gradle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+      - name: Build and run with Gradle
+        run: |
+          gradle build
+          gradle run
+          gradle test
+          gradle nativeCompile
+          gradle nativeRun
