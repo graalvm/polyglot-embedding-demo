@@ -18,6 +18,10 @@ jobs:
           native-image-job-reports: 'true'
       - name: Build and run with Maven
         run: |
+          mvn --no-transfer-progress package
+          mvn --no-transfer-progress test
+          mvn --no-transfer-progress exec:exec
+          mvn --no-transfer-progress -Pnative package
           ./target/embedding
 
   gradle:
