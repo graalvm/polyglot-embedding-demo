@@ -18,10 +18,7 @@ jobs:
           native-image-job-reports: 'true'
       - name: Build and run with Maven
         run: |
-          mvn package
-          mvn test
-          mvn exec:exec
-          mvn -Pnative package
+          ./target/embedding
 
   gradle:
     name: Test Gradle
