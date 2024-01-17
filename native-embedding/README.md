@@ -1,12 +1,12 @@
 # Polyglot Native Embedding Demo with GraalVM for JDK 21 
 Demonstration project showing polyglot native embedding with GraalVM JDK 21 using Maven.
-It contains a simple API class that is built into a native libary and then accessed in a C program.
-The C program runs both with the JVM library and the self-contained library built by Native Image
+It contains a simple API class that is built into a native libary and then accessed in a few example C programs.
+The C programs listed below run both with the JVM library and the self-contained library built by Native Image
 as a part of this project.
 
-The project is supported on all platforms where GraalVM is supported.
-
-> On Windows the project has to be executed from the Visual Studio's x64 Native Tools Command Prompt.
+* [hello-with-callback.c](./src/test/c/hello-with-callback.c) - print a simple message with a string part obtained from a callback to the C program.
+* [fib.c](./src/test/c/fib.c) - compute n-th element of the Fibonacci sequence. 
+* [evaljs.c](./src/test/c/evaljs.c) - eval a JS string passed as a parameter.
 
 ## Setup
 
@@ -22,6 +22,10 @@ Download Maven or import as Maven project into your IDE.
 * `mvn -Pnative package` to build the native embedding library by Native Image.
 * `mvn -Pnative verify` to build the native embedding library by Native Image and run the C tests of the API exposed by the library.
 * `mvn -Pnative verify -Dbuild.native.embedding.library.phase=none` to run the C tests without building the library (when the library is already built).
+
+> The project is supported on all platforms where GraalVM is supported.
+
+> On Windows the project has to be executed from the Visual Studio's x64 Native Tools Command Prompt.
 
 ### Generating C headers for the native methods in the Java files
 
