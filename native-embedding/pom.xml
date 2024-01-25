@@ -12,7 +12,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <graalvm.version>23.1.0</graalvm.version>
+        <graalvm.version>23.1.2</graalvm.version>
         <!--Overriding the value of this property on the command line by -Dbuild.native.embedding.library.phase=none-->
         <!--skips the building of the native embedding library which is good for playing with the C tests after the library is already built.-->
         <build.native.embedding.library.phase>package</build.native.embedding.library.phase>
