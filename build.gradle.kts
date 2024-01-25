@@ -3,7 +3,7 @@ import java.nio.file.*
 plugins {
     id("java")
     id("application")
-    id("org.graalvm.buildtools.native") version "0.9.27"
+    id("org.graalvm.buildtools.native") version "0.9.28"
 }
 
 java {
@@ -20,7 +20,7 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 description = "embedding"
 
-var graalVMVersion: String = "23.1.0";
+var graalVMVersion: String = "23.1.2";
 dependencies {
     implementation("org.graalvm.polyglot:polyglot:$graalVMVersion")
     implementation("org.graalvm.polyglot:js:$graalVMVersion")
