@@ -147,6 +147,10 @@
             This profile may be removed if no native-image builds are needed.
             -->
             <id>native</id>
+            <properties>
+                <image.name>${project.artifactId}</image.name>
+                <image.path>${project.build.directory}/${image.name}</image.path>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -164,13 +168,30 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <imageName>${project.artifactId}</imageName>
+                            <imageName>${image.name}</imageName>
                             <mainClass>org.example.embedding.Main</mainClass>
                             <buildArgs>
                                 <buildArg>--no-fallback</buildArg>
                                 <buildArg>-J-Xmx20g</buildArg>
                             </buildArgs>
                         </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>default-cli</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${image.path}</executable>
+                                    <arguments/>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
