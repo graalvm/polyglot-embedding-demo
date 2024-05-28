@@ -71,7 +71,7 @@ public class Main {
                         break;
                     case "wasm":
                         // with wasm we compute factorial
-                        context.eval(Source.newBuilder("wasm", Main.class.getResource("factorial.wasm")).build());
+                        context.eval(Source.newBuilder("wasm", Main.class.getResource("factorial.wasm")).name("main").build());
                         Value factorial = context.getBindings("wasm").getMember("main").getMember("fac");
                         System.out.println("wasm: factorial(20) = " + factorial.execute(20L));
                         break;

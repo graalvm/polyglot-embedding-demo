@@ -24,7 +24,7 @@
 
     <properties>
         <!-- Select the GraalVM version to use. -->
-        <graalvm.version>23.1.2</graalvm.version>
+        <graalvm.version>24.0.1</graalvm.version>
     </properties>
 
     <dependencies>
@@ -156,7 +156,7 @@
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
-                        <version>0.9.28</version>
+                        <version>0.10.2</version>
                         <extensions>true</extensions>
                         <executions>
                             <execution>
