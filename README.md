@@ -22,6 +22,7 @@ Download Maven or import as Maven project into your IDE.
 * `mvn -Pnative package` to build a native-image
 * `mvn -Passembly package` to build an uber JAR containing all dependencies using the Maven Assembly Plugin. The resulting JAR can be executed using `java -jar embedding-1.0-SNAPSHOT-jar-with-dependencies.jar`. We do recommend not using shading whenever possible.
 * `mvn -Pshade package` to build an uber JAR containing all dependencies using the Maven Shade Plugin. The resulting JAR can be executed using `java -jar embedding-1.0-SNAPSHOT.jar`. We do recommend not using shading whenever possible.
+* `mvn -Pisolated package` to install native isolate versions of languages for the current platform 
 
 Please see the [pom.xml](./pom.xml) file for further details on the configuration.
 

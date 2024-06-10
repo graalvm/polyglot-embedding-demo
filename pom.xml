@@ -44,6 +44,8 @@
 
         Switch to community licenses by adding a `-community` suffix to the artefact id (e.g. `js-communtiy`).
         Switch to native isolate versions of languages by adding a `-isolate` suffix. (`js-isolate`).
+        Since Polyglot version 24.1, native isolate versions of languages for specific platforms are supported.
+        Refer to the `isolate` profiles for instructions on how to activate them.
 
         Any dependency in the org.graalvm.polyglot group is intended for use by polyglot embeddings.
         -->
@@ -401,8 +403,90 @@
                 </plugins>
             </build>
         </profile>
+        <!--
+        Profiles for using a native isolate versions of languages for a specific platform.
+        Native isolate versions of languages for a specific platforms are supported since
+        Polyglot version 24.1 for JavaScript (js) and Python (python).
+        These profiles may be removed if you are not using native isolate versions of languages.
+        -->
+        <!-- Linux AMD64 -->
+        <profile>
+            <id>isolate-linux-amd64</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform>linux-amd64</isolate.platform>
+            </properties>
+        </profile>
+        <!-- Linux AARCH64 -->
+        <profile>
+            <id>isolate-linux-aarch64</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform>linux-aarch64</isolate.platform>
+            </properties>
+        </profile>
+        <!-- macOS AMD64 -->
+        <profile>
+            <id>isolate-darwin-amd64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform>darwin-amd64</isolate.platform>
+            </properties>
+        </profile>
+        <!-- macOS AARCH64 -->
+        <profile>
+            <id>isolate-darwin-aarch64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform>darwin-aarch64</isolate.platform>
+            </properties>
+        </profile>
+        <!-- Windows AMD64 -->
+        <profile>
+            <id>isolate-windows-amd64</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform>windows-amd64</isolate.platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>isolated</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.graalvm.polyglot</groupId>
+                    <artifactId>js-isolate-${isolate.platform}</artifactId>
+                    <version>${graalvm.version}</version>
+                    <type>pom</type>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
 </project>
-
-
