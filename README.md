@@ -16,13 +16,12 @@ https://www.graalvm.org/latest/reference-manual/embed-languages/
 
 Download Maven or import as Maven project into your IDE.
 
-* `mvn package` build using javac
+* `mvn package` build using `javac`. Starting from GraalVM Polyglot API version 24.1.0, you can use `mvn -Pisolated package` to build with the native isolate version of a guest language. By default, only the native isolate library for the current platform is installed. To install native isolate libraries for all supported platforms, use `mvn -Pisolated -Disolated.all.platforms package`.
 * `mvn test` to run the tests
-* `mvn exec:exec` to run the Main application
+* `mvn exec:exec` to run the application. Starting from GraalVM Polyglot API version 24.1.0, you can use `mvn -Pisolated exec:exec` to embed the native isolate version of a guest language.
 * `mvn -Pnative package` to build a native-image
 * `mvn -Passembly package` to build an uber JAR containing all dependencies using the Maven Assembly Plugin. The resulting JAR can be executed using `java -jar embedding-1.0-SNAPSHOT-jar-with-dependencies.jar`. We do recommend not using shading whenever possible.
 * `mvn -Pshade package` to build an uber JAR containing all dependencies using the Maven Shade Plugin. The resulting JAR can be executed using `java -jar embedding-1.0-SNAPSHOT.jar`. We do recommend not using shading whenever possible.
-* `mvn -Pisolated package` to install native isolate versions of languages for the current platform 
 
 Please see the [pom.xml](./pom.xml) file for further details on the configuration.
 
