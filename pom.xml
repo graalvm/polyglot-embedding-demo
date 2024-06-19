@@ -44,6 +44,8 @@
 
         Switch to community licenses by adding a `-community` suffix to the artefact id (e.g. `js-communtiy`).
         Switch to native isolate versions of languages by adding a `-isolate` suffix. (`js-isolate`).
+        Starting from GraalVM Polyglot API version 24.1.0, native isolate versions of languages for specific platforms are supported.
+        Refer to the `isolate` profiles for instructions on how to activate them.
 
         Any dependency in the org.graalvm.polyglot group is intended for use by polyglot embeddings.
         -->
@@ -106,8 +108,10 @@
                         <configuration>
                             <executable>${java.home}/bin/java</executable>
                             <arguments>
-                                <!-- We recommend running from the module-path by default.
-                                     But you can also switch to the class-path here.-->
+                                <!--
+                                We recommend running from the module path by default.
+                                You can also switch to the classpath here.
+                                -->
                                 <argument>--module-path</argument>
                                 <modulepath/>
                                 <argument>-m</argument>
@@ -119,8 +123,10 @@
                 <configuration>
                     <executable>${java.home}/bin/java</executable>
                     <arguments>
-                        <!-- We recommend running from the module-path by default.
-                        But you can also switch to the class-path here.-->
+                        <!--
+                        We recommend running from the module path by default.
+                        You can also switch to the classpath here.
+                        -->
                         <argument>--module-path</argument>
                         <modulepath/>
                         <argument>-m</argument>
@@ -223,7 +229,7 @@
                         <executions>
                             <!--
                             Copies compiler dependencies to the target/compiler folder. In order to run with an
-                            optimizing runtime on other JDKs than GraalVM we need to put the compiler on the upgrade-module-path.
+                            optimizing runtime on other JDKs than GraalVM we need to put the compiler on the upgrade module path.
                             -->
                             <execution>
                                 <id>copy-dependencies</id>
@@ -401,8 +407,186 @@
                 </plugins>
             </build>
         </profile>
+        <!--
+        Profiles for using a native isolate language version for a specific platform.
+        Native isolate versions of languages for a specific platforms are supported since
+        Polyglot version 24.1 for JavaScript (js) and Python (python).
+        These profiles may be removed if you are not using native isolate versions of languages.
+        -->
+        <!-- Linux AMD64 -->
+        <profile>
+            <id>isolated-linux-amd64</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform.suffix>-linux-amd64</isolate.platform.suffix>
+            </properties>
+        </profile>
+        <!-- Linux AARCH64 -->
+        <profile>
+            <id>isolated-linux-aarch64</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform.suffix>-linux-aarch64</isolate.platform.suffix>
+            </properties>
+        </profile>
+        <!-- macOS AMD64 -->
+        <profile>
+            <id>isolated-darwin-amd64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform.suffix>-darwin-amd64</isolate.platform.suffix>
+            </properties>
+        </profile>
+        <!-- macOS AARCH64 -->
+        <profile>
+            <id>isolated-darwin-aarch64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform.suffix>-darwin-aarch64</isolate.platform.suffix>
+            </properties>
+        </profile>
+        <!-- Windows AMD64 -->
+        <profile>
+            <id>isolated-windows-amd64</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <isolate.platform.suffix>-windows-amd64</isolate.platform.suffix>
+            </properties>
+        </profile>
+        <!--
+        Profile to package polyglot isolate libraries for all supported platforms.
+        The profile is activated using `mvn -Pisolated -Disolated.all.platforms`
+        -->
+        <profile>
+            <id>isolated-all-platforms</id>
+            <activation>
+                <property>
+                    <name>isolated.all.platforms</name>
+                </property>
+            </activation>
+            <properties>
+                <isolate.platform.suffix></isolate.platform.suffix>
+            </properties>
+        </profile>
+        <!--
+        Profile for using isolated version of a guest language.
+        The profile is activated by `mvn -Pisolated`.
+        -->
+        <profile>
+            <id>isolated</id>
+            <properties>
+                <isolated.language.id>js</isolated.language.id>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.graalvm.polyglot</groupId>
+                    <artifactId>js-isolate${isolate.platform.suffix}</artifactId>
+                    <version>${graalvm.version}</version>
+                    <type>pom</type>
+                </dependency>
+                <!--
+                Including the non-isolated language as a provided dependency ensures that the non-isolated language
+                included in the project dependencies is excluded from the Java module path.
+                -->
+                <dependency>
+                    <groupId>org.graalvm.polyglot</groupId>
+                    <artifactId>js</artifactId>
+                    <version>${graalvm.version}</version>
+                    <type>pom</type>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <!--
+                                The Maven Surefire plugin sets the `polyglot.engine.SpawnIsolate=<language>`
+                                system property to utilize the isolated version of the language during unit tests.
+                                -->
+                                <polyglot.engine.SpawnIsolate>${isolated.language.id}</polyglot.engine.SpawnIsolate>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>no-runtime-compilation</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${java.home}/bin/java</executable>
+                                    <arguments>
+                                        <argument>-Dpolyglot.engine.SpawnIsolate=${isolated.language.id}</argument>
+                                        <!--
+                                        We recommend running from the module path by default.
+                                        You can also switch to the classpath here.
+                                        -->
+                                        <argument>--module-path</argument>
+                                        <modulepath/>
+                                        <argument>-m</argument>
+                                        <argument>embedding/org.example.embedding.Main</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <arguments>
+                                <argument>-Dpolyglot.engine.SpawnIsolate=${isolated.language.id}</argument>
+                                <!--
+                                We recommend running from the module path by default.
+                                You can also switch to the classpath here.
+                                -->
+                                <argument>--module-path</argument>
+                                <modulepath/>
+                                <argument>-m</argument>
+                                <argument>embedding/org.example.embedding.Main</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
-
 </project>
-
-
