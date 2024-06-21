@@ -241,6 +241,8 @@
                                     <outputDirectory>
                                         ${project.build.directory}/compiler
                                     </outputDirectory>
+                                    <overWriteReleases>true</overWriteReleases>
+                                    <overWriteSnapshots>true</overWriteSnapshots>
                                     <artifactItems>
                                         <!--
                                         Unfortunately Maven does not support resolving transitive dependencies
