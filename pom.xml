@@ -359,6 +359,9 @@
                                         <manifest>
                                             <mainClass>org.example.embedding.Main</mainClass>
                                         </manifest>
+                                        <manifestEntries>
+                                            <Multi-Release>true</Multi-Release>
+                                        </manifestEntries>
                                     </archive>
                                     <descriptors>
                                         <descriptor>assembly.xml</descriptor>
@@ -392,6 +395,9 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.example.embedding.Main</mainClass>
+                                    <manifestEntries>
+                                        <Multi-Release>true</Multi-Release>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <filters>
