@@ -24,7 +24,7 @@
 
     <properties>
         <!-- Select the GraalVM version to use. -->
-        <graalvm.version>24.0.1</graalvm.version>
+        <graalvm.version>24.2.1</graalvm.version>
     </properties>
 
     <dependencies>

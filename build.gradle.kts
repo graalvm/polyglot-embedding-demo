@@ -20,7 +20,7 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 description = "embedding"
 
-var graalVMVersion: String = "24.0.1";
+var graalVMVersion: String = "24.2.1";
 dependencies {
     implementation("org.graalvm.polyglot:polyglot:$graalVMVersion")
     implementation("org.graalvm.polyglot:js:$graalVMVersion")
