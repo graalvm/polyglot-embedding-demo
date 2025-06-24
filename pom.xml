@@ -24,7 +24,7 @@
 
     <properties>
         <!-- Select the GraalVM version to use. -->
-        <graalvm.version>24.0.1</graalvm.version>
+        <graalvm.version>24.2.1</graalvm.version>
     </properties>
 
     <dependencies>
@@ -258,6 +258,13 @@
                                         </artifactItem>
                                         <artifactItem>
                                             <groupId>org.graalvm.sdk</groupId>
+                                            <artifactId>nativeimage</artifactId>
+                                            <version>${graalvm.version}</version>
+                                            <type>jar</type>
+                                            <destFileName>nativeimage.jar</destFileName>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>org.graalvm.sdk</groupId>
                                             <artifactId>word</artifactId>
                                             <version>${graalvm.version}</version>
                                             <type>jar</type>
@@ -359,6 +366,9 @@
                                         <manifest>
                                             <mainClass>org.example.embedding.Main</mainClass>
                                         </manifest>
+                                        <manifestEntries>
+                                            <Multi-Release>true</Multi-Release>
+                                        </manifestEntries>
                                     </archive>
                                     <descriptors>
                                         <descriptor>assembly.xml</descriptor>
@@ -392,6 +402,9 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.example.embedding.Main</mainClass>
+                                    <manifestEntries>
+                                        <Multi-Release>true</Multi-Release>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <filters>
